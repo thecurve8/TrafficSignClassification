@@ -64,8 +64,12 @@ def loadData(n_classes=classes):
 
 # Train data: (31368, 30, 30, 3)
 # Validation data: (7841, 30, 30, 3)
-def loadSplitTrainValidation(n_classes=classes):
-    X, targets = loadData()
+def loadSplitTrainValidation(n_classes=classes, quickLoadForTest=False):
+    if quickLoadForTest:
+        print("Quick Loading only two classes (remove after debugging)")
+        X, targets = loadData(n_classes=2)
+    else:
+        X, targets = loadData()
     num_examples = X.shape[0]
 
     #Take 20% for validation data
