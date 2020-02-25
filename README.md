@@ -23,7 +23,15 @@ The network is as follows:
 - 1 Dropout layer with keep_prob 0.5 (keep_prob is 1.0 when not used for training)
 - 1 Dense layer with 43 outputs (all the classes) and activation softmax
 
-The model can be created and trained and then saved.
-For later training you can restore the last state of the model and continue training. 
+The model can be created and trained and then saved with the function mainStartLearning.
+For later training you can restore the last state of the model and continue training with the function continueLearning.
+
+Accuracy and loss values are taken throughout the whole training process (even if different training sessions) and are logged.
+
+You can view these logs by:
+1)
+  - >>> tensorboard --logdir="./logs" --port 6006 
+  - To see results go to http://localhost:6006/#scalars
+2) load arrays with logged values from the optTrafficSigns.pkl file with pickle.load
 
 There is a GUI that can be used to see how the model predicts images of road signs
