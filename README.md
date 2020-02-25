@@ -29,9 +29,8 @@ For later training you can restore the last state of the model and continue trai
 Accuracy and loss values are taken throughout the whole training process (even if different training sessions) and are logged.
 
 You can view these logs by:
-1)
-  - >>> tensorboard --logdir="./logs" --port 6006 
-  - To see results go to http://localhost:6006/#scalars
+1) run: tensorboard --logdir="./logs" --port 6006 
+  To see results go to http://localhost:6006/#scalars
 2) load arrays with logged values from the optTrafficSigns.pkl file with pickle.load
 
 There is a GUI that can be used to see how the model predicts images of road signs
