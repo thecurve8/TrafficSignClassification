@@ -56,13 +56,13 @@ def main():
             image = np.reshape(image, (-1, 30, 30, 3))
             feed_dict={x: image}
             softmax_layer_val  = sess.run(softmax_layer, feed_dict=feed_dict)
-            pred = np.argmax(softmax_layer_val, 1)  
-            sign = classes_dict[pred[0]+1]
-            
-            label.configure(foreground='#011638', text="Predicted class: "+sign) 
+            pred = np.argmax(softmax_layer_val, 1)[0] 
+            pred_prob=softmax_layer_val[0,pred]
+            sign = classes_dict[pred+1]
+            label.configure(foreground='#011638', text="Predicted class: "+sign+" with probability "+"{:.4f}".format(pred_prob)) 
             if correct_pred!=None:  
                 foreground_color='#267f1a' #green
-                if pred[0]!=correct_pred:
+                if pred!=correct_pred:
                     foreground_color = '#911608' #red
                 correct_sign = classes_dict[correct_pred+1]                
                 correct_label.configure(foreground=foreground_color, text="Correct class: "+correct_sign)

@@ -17,7 +17,7 @@ from PIL import Image
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 """
-Run main
+To view logged values of accuracy and loss
 >>>tensorboard --logdir="./logs" --port 6006
 To see results go to http://localhost:6006/#scalars
 """
@@ -174,7 +174,7 @@ def cnnTF(batch_size=64, epochs_to_run=15, onlyFinal=False, n_classes=classes, k
 
     return trainLoss, trainAccuracy, validationLoss, validationAccuracy
 
-def restoreGraph(epochs_to_run, trainLoss, trainAccuracy, validationLoss, validationAccuracy, batch_size=64, onlyFinal=False, keep1_prob=0.75, keep2_prob=0.5):
+def restoreGraphAndTrain(epochs_to_run, trainLoss, trainAccuracy, validationLoss, validationAccuracy, batch_size=64, onlyFinal=False, keep1_prob=0.75, keep2_prob=0.5):
     tf.set_random_seed(421)
 
 #    initialize the datasets
@@ -290,7 +290,7 @@ def mainStartLearning(epochs_to_run=15):
 def continueLearning(epochs_to_run=5):
     with open('optTrafficSigns.pkl', 'rb') as f:  
         trainLoss, trainAccuracy, validationLoss, validationAccuracy = pickle.load(f)      
-        trainLoss, trainAccuracy, validationLoss, validationAccuracy = restoreGraph(epochs_to_run, trainLoss, trainAccuracy, validationLoss, validationAccuracy)
+        trainLoss, trainAccuracy, validationLoss, validationAccuracy = restoreGraphAndTrain(epochs_to_run, trainLoss, trainAccuracy, validationLoss, validationAccuracy)
         with open('optTrafficSigns.pkl', 'wb') as f: 
             pickle.dump([trainLoss, trainAccuracy, validationLoss, validationAccuracy], f)
     return
@@ -345,7 +345,7 @@ def predict(images, classes):
         x= tf.get_collection('x')[0]
         y=tf.get_collection('y')[0]
 
-        feed_dict={x: images, y: classes}
+        feed_dict={x: images[], y: classes[]}
         loss_val, accuracy_val, softmax_layer_val  = sess.run([loss_op, accuracy, softmax_layer], feed_dict=feed_dict)
         predicted_classes = np.argmax(softmax_layer_val, 1)
         correct_classes = np.argmax(classes,1)
@@ -353,14 +353,11 @@ def predict(images, classes):
         index_row = np.arange(len(softmax_layer_val))
         indices = list(zip(index_row, predicted_classes, correct_classes))
         for i in indices:
-            if i[1]!=i[2]:
-                print("Image ", i[0], "is of class ", i[1], " with probability", softmax_layer_val[i[0:2]], " - correct class: ", i[2])
-                img = Image.fromarray(images[i[0]], 'RGB')
-#                img.show()
+#            if i[1]!=i[2]:
+            print("Image ", i[0], "is of class ", i[1], " with probability", softmax_layer_val[i[0:2]], " - correct class: ", i[2])
+#            img = Image.fromarray(images[i[0]], 'RGB')
+#            img.show()
         return
-    
-X, testTarget = loadTestData()
-predict(X, testTarget)
 
 
 def cnnKeras():
