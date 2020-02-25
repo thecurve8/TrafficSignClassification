@@ -11,8 +11,9 @@ import matplotlib.pyplot as plt
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout
 from settings import classes, cur_path
-from dataLoadingAndManipulation import shuffle, loadSplitTrainValidation
+from dataLoadingAndManipulation import shuffle, loadSplitTrainValidation, loadTestData
 from layersNN import conv2d, max_pooling2d, dropout, flatten, dense
+from PIL import Image
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 """
@@ -194,7 +195,6 @@ def restoreGraph(epochs_to_run, trainLoss, trainAccuracy, validationLoss, valida
     # delete the current graph
     tf.reset_default_graph()
     # import the graph from the file
-    #TODO add path to persistent metafile
     tf.train.import_meta_graph('./savedModels/persistentMeta/trafficSignClassifier.meta')
     saver=tf.train.Saver(max_to_keep=3) 
     with tf.Session() as sess:
@@ -324,8 +324,43 @@ def plotLogsLosses():
     plt.show()
     return
 
-plotLogsAccuracy()
+def predict(images, classes):
+    images = np.reshape(images,(-1, 30,30,3))
+    classes = np.reshape(classes,(-1, 43))
+    # delete the current graph
+    tf.reset_default_graph()
+    # import the graph from the file
+    tf.train.import_meta_graph('./savedModels/persistentMeta/trafficSignClassifier.meta')
+    saver=tf.train.Saver(max_to_keep=3) 
+    with tf.Session() as sess:        
+        #Get the latest checkpoint in the directory
+        restore_from = tf.train.latest_checkpoint("./savedModels")
+        #Reload the weights into the variables of the graph
+        saver.restore(sess, restore_from)
+        print("Variables initialized")
+        
+        loss_op=tf.get_collection('loss_op')[0]
+        accuracy=tf.get_collection('accuracy')[0]
+        softmax_layer=tf.get_collection('softmax_layer')[0]
+        x= tf.get_collection('x')[0]
+        y=tf.get_collection('y')[0]
 
+        feed_dict={x: images, y: classes}
+        loss_val, accuracy_val, softmax_layer_val  = sess.run([loss_op, accuracy, softmax_layer], feed_dict=feed_dict)
+        predicted_classes = np.argmax(softmax_layer_val, 1)
+        correct_classes = np.argmax(classes,1)
+
+        index_row = np.arange(len(softmax_layer_val))
+        indices = list(zip(index_row, predicted_classes, correct_classes))
+        for i in indices:
+            if i[1]!=i[2]:
+                print("Image ", i[0], "is of class ", i[1], " with probability", softmax_layer_val[i[0:2]], " - correct class: ", i[2])
+                img = Image.fromarray(images[i[0]], 'RGB')
+#                img.show()
+        return
+    
+X, testTarget = loadTestData()
+predict(X, testTarget)
 
 
 def cnnKeras():

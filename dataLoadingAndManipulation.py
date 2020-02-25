@@ -99,7 +99,7 @@ def loadTestData(n_classes=classes):
     testData=[]
     testTarget=[]
     
-    
+    print("Loading test data...")
     test_file = pd.read_csv('Test.csv')
     testTarget=test_file["ClassId"].values
     images=test_file["Path"].values
@@ -116,13 +116,5 @@ def loadTestData(n_classes=classes):
     testTarget = np.array(testTarget)
     testTarget = convertOneHot(testTarget, n_classes)
     
-    #size of 1 image
-    dimw = 30*30*3
-    num_examples = testTarget.shape[0]
-
-    X = np.zeros((num_examples,dimw))
-
-    for i in range(num_examples):
-        X[i]=testData[i].flatten()
-        
-    return X, testTarget
+    print("Test data loaded")
+    return testData, testTarget
