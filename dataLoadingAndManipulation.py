@@ -9,6 +9,8 @@ import numpy as np
 import os
 from PIL import Image
 import pandas as pd
+from os import listdir
+from os.path import isfile, join
 
 
 def convertOneHot(oldTarget, n_classes=classes):
@@ -118,3 +120,25 @@ def loadTestData(n_classes=classes):
     
     print("Test data loaded")
     return testData, testTarget
+
+def findLatestMetaFile(name):
+    onlyfiles = [f for f in listdir("./savedModels") if isfile(join("./savedModels", f))]
+    biggest_step=-1
+    file_with_biggest_step=""
+    for file in onlyfiles:
+        filename, file_extension = os.path.splitext(file)
+        if file_extension==".meta" and filename.startswith(name+"-"):
+            rest=filename[len(name)+1:]
+            try:
+                int_value = int(rest)
+                if int_value > biggest_step:
+                    biggest_step=int_value
+                    file_with_biggest_step=filename+file_extension
+            except ValueError:
+                pass
+    if biggest_step!=-1:
+        print("Biggest step found is ", biggest_step)
+        print("Meta file is " + file_with_biggest_step)
+    else:
+        print("Meta file not found")
+    return biggest_step, file_with_biggest_step

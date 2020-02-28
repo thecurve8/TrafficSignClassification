@@ -11,6 +11,7 @@ from tkinter import Button, Label, BOTTOM
 from PIL import ImageTk, Image
 from random import randint
 from settings import cur_path, classes_dict
+from dataLoadingAndManipulation import findLatestMetaFile
 import tensorflow as tf
 import numpy as np
 import os
@@ -21,7 +22,12 @@ def main():
     # delete the current graph
     tf.reset_default_graph()
     # import the graph from the file
-    tf.train.import_meta_graph('./savedModels/persistentMeta/trafficSignClassifier.meta')
+    file_step, filename=findLatestMetaFile("trafficSignClassifier")
+    if file_step==-1:
+        print("No trained model found")
+        return
+    
+    tf.train.import_meta_graph('./savedModels/'+filename)
     saver=tf.train.Saver(max_to_keep=3) 
     with tf.Session() as sess:        
         #Get the latest checkpoint in the directory
@@ -124,6 +130,7 @@ def main():
                 file_path=os.path.join(file_path, name)
                 uploaded=Image.open(file_path)
                 uploaded.thumbnail(((top.winfo_width()),(top.winfo_height())))
+                uploaded = uploaded.resize((250, 250), Image.ANTIALIAS)
                 im=ImageTk.PhotoImage(uploaded)
                 sign_image.configure(image=im)
                 sign_image.image=im

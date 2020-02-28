@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout
 from settings import classes, cur_path
-from dataLoadingAndManipulation import shuffle, loadSplitTrainValidation, loadTestData
+from dataLoadingAndManipulation import shuffle, loadSplitTrainValidation, findLatestMetaFile
 from layersNN import conv2d, max_pooling2d, dropout, flatten, dense
 from PIL import Image
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -174,7 +174,7 @@ def cnnTF(batch_size=64, epochs_to_run=15, onlyFinal=False, n_classes=classes, k
 
     return trainLoss, trainAccuracy, validationLoss, validationAccuracy
 
-def restoreGraphAndTrain(epochs_to_run, trainLoss, trainAccuracy, validationLoss, validationAccuracy, batch_size=64, onlyFinal=False, keep1_prob=0.75, keep2_prob=0.5):
+def restoreGraphAndTrain(epochs_to_run, trainLoss, trainAccuracy, validationLoss, validationAccuracy, latestMetaFile, batch_size=64, onlyFinal=False, keep1_prob=0.75, keep2_prob=0.5, learning_rate=0.001):
     tf.set_random_seed(421)
 
 #    initialize the datasets
@@ -191,11 +191,10 @@ def restoreGraphAndTrain(epochs_to_run, trainLoss, trainAccuracy, validationLoss
     validationLossNew = np.zeros((epochs_to_run, 2))
     validationAccuracyNew = np.zeros((epochs_to_run, 2))
 
-    
     # delete the current graph
     tf.reset_default_graph()
     # import the graph from the file
-    tf.train.import_meta_graph('./savedModels/persistentMeta/trafficSignClassifier.meta')
+    tf.train.import_meta_graph('./savedModels/'+latestMetaFile)
     saver=tf.train.Saver(max_to_keep=3) 
     with tf.Session() as sess:
         log_dir=os.path.join(cur_path, "logs")
@@ -213,13 +212,13 @@ def restoreGraphAndTrain(epochs_to_run, trainLoss, trainAccuracy, validationLoss
         accuracy_summary=tf.get_collection('accuracy_summary')[0]
         loss_op=tf.get_collection('loss_op')[0]
         accuracy=tf.get_collection('accuracy')[0]
-        softmax_layer=tf.get_collection('softmax_layer')[0]
+#        softmax_layer=tf.get_collection('softmax_layer')[0]
         x= tf.get_collection('x')[0]
         y=tf.get_collection('y')[0]
         global_step = tf.get_collection('global_step')[0]
         keep1 = tf.get_collection('keep1')[0]
         keep2 = tf.get_collection('keep2')[0]
-        learning_rate = tf.get_collection('learning_rate')[0]
+        learning_rate_tensor = tf.get_collection('learning_rate')[0]
             
         global_step_val=sess.run(global_step)
         step_in_current_training_session = 0
@@ -238,7 +237,7 @@ def restoreGraphAndTrain(epochs_to_run, trainLoss, trainAccuracy, validationLoss
                 #select minibatch and run optimizer
                 minibatch_x = X[minibatch_index*batch_size: (minibatch_index + 1)*batch_size, :]
                 minibatch_y = trainTargets[minibatch_index*batch_size: (minibatch_index + 1)*batch_size, :]           
-                feed_dict={x: minibatch_x, y: minibatch_y, keep1:keep1_prob, keep2:keep2_prob}
+                feed_dict={x: minibatch_x, y: minibatch_y, keep1:keep1_prob, keep2:keep2_prob, learning_rate_tensor:learning_rate}
                 _, loss_val, accuracy_val, loss_summary_val, accuracy_summary_val, global_step_val  = sess.run([train_op, loss_op, accuracy, loss_summary, accuracy_summary, global_step], feed_dict=feed_dict)
 
                 train_writer.add_summary(loss_summary_val, global_step_val)
@@ -287,10 +286,10 @@ def mainStartLearning(epochs_to_run=15):
         pickle.dump([trainLoss, trainAccuracy, validationLoss, validationAccuracy], f)
     return
 
-def continueLearning(epochs_to_run=5):
+def continueLearning(latestMetaFile, epochs_to_run=5, learning_rate=0.001):
     with open('optTrafficSigns.pkl', 'rb') as f:  
         trainLoss, trainAccuracy, validationLoss, validationAccuracy = pickle.load(f)      
-        trainLoss, trainAccuracy, validationLoss, validationAccuracy = restoreGraphAndTrain(epochs_to_run, trainLoss, trainAccuracy, validationLoss, validationAccuracy)
+        trainLoss, trainAccuracy, validationLoss, validationAccuracy = restoreGraphAndTrain(epochs_to_run, trainLoss, trainAccuracy, validationLoss, validationAccuracy, latestMetaFile, learning_rate=learning_rate)
         with open('optTrafficSigns.pkl', 'wb') as f: 
             pickle.dump([trainLoss, trainAccuracy, validationLoss, validationAccuracy], f)
     return
@@ -330,6 +329,7 @@ def predict(images, classes):
     # delete the current graph
     tf.reset_default_graph()
     # import the graph from the file
+    
     tf.train.import_meta_graph('./savedModels/persistentMeta/trafficSignClassifier.meta')
     saver=tf.train.Saver(max_to_keep=3) 
     with tf.Session() as sess:        
@@ -345,7 +345,7 @@ def predict(images, classes):
         x= tf.get_collection('x')[0]
         y=tf.get_collection('y')[0]
 
-        feed_dict={x: images[], y: classes[]}
+        feed_dict={x: images, y: classes}
         loss_val, accuracy_val, softmax_layer_val  = sess.run([loss_op, accuracy, softmax_layer], feed_dict=feed_dict)
         predicted_classes = np.argmax(softmax_layer_val, 1)
         correct_classes = np.argmax(classes,1)
@@ -383,3 +383,17 @@ def cnnKeras():
     epochs=15
     history = model.fit(trainData, trainTargets, batch_size=64, epochs=epochs, validation_data=(vData, vTargets))
     return
+
+def main():
+    name="trafficSignClassifier"
+    val, file_name=findLatestMetaFile(name)
+    if val!=-1:
+        print("Continue learning after step {}".format(val))
+        continueLearning(file_name, epochs_to_run=3, learning_rate=0.0001)
+    else:
+        print("Start learning from scratch")
+        mainStartLearning()
+    
+if __name__=="__main__":
+    main()
+
