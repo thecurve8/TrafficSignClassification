@@ -3,6 +3,10 @@
 Created on Mon Feb 24 14:43:19 2020
 
 @author: Alexander
+
+This script is used to load and prepare the datasets and to find saved metafiles
+
+This script requires numpy, PIL and pandas
 """
 from settings import classes, cur_path
 import numpy as np
@@ -14,30 +18,78 @@ from os.path import isfile, join
 
 
 def convertOneHot(oldTarget, n_classes=classes):
+    """Converts an array of classes(integers) into one-hot encoding
+       
+    Parameters
+    ----------
+    oldTarget : numpy array
+        an array of int classes
+    n_classes : int, optional
+        total number of classes (default is settings.classes)
+        
+    Returns
+    -------
+    newTarget
+        2 dimensional array with one hot encoded classes
+    """    
+    
     newTarget = np.zeros((oldTarget.shape[0], n_classes))
     for item in range(0, oldTarget.shape[0]):
         newTarget[item][oldTarget[item]] = 1
 
     return newTarget
 
-#Shuffles the oldData, with the targets
-def shuffle(oldData, oldTarget):
+def shuffle(oldData, oldLabels):
+    """Returns an shuffled copy of the data and their labels
+       
+    Parameters
+    ----------
+    oldData : numpy array
+        array containg the data
+    oldTarget : numpy array
+        array containing the labels
+        
+    Returns
+    -------
+    newData : numpy array
+        shuffled copy of the data
+    newTarget : numpy array
+        shuffled copy of the targets
+    """    
+
     np.random.seed(421)
     randIndx = np.arange(len(oldData))
     np.random.shuffle(randIndx)
-    newData, newTarget = oldData[randIndx], oldTarget[randIndx]
+    newData, newTarget = oldData[randIndx], oldLabels[randIndx]
     return newData, newTarget
 
 
-# Data set is 39,210 datapoints (76%)
 def loadData(n_classes=classes):
+    """Loads the train dataset with its labels
+       
+    The Data set is 39,210 datapoints (76% of all datapoints)
+
+    
+    Parameters
+    ----------
+    n_classes : int, optional
+        total number of classes (default is settings.classes)
+        
+    Returns
+    -------
+    data : numpy array
+        all datapoints representing the traffic sign images
+    targets  : numpy array
+        targets of the data
+    """  
+    
     data=[]
     targets=[]
 
-    #Load train data
     print("Starting to load images")
-    #
+    
     for i in range(n_classes):
+        #updates the state of loading
         print('\rLoading class: {}/{}'.format(i, n_classes), end='\r')
         path = os.path.join(cur_path, 'train', str(i))
         
@@ -64,11 +116,38 @@ def loadData(n_classes=classes):
 
     return data, targets
 
-# Train data: (31368, 30, 30, 3)
-# Validation data: (7841, 30, 30, 3)
+
 def loadSplitTrainValidation(n_classes=classes, quickLoadForTest=False):
+    """Loads the train dataset with its labels and splits it into Train and Validation
+       
+    The Data set is 39,210 datapoints
+    - Train dataset is 80% of this 
+    - Validation dataset is 20% of this
+    
+    Train data: (31368, 30, 30, 3)
+    Validation data: (7841, 30, 30, 3)
+    
+    Parameters
+    ----------
+    n_classes : int, optional
+        total number of classes (default is settings.classes)
+    quickLoadForTest : bool, optional
+        for debugging, only loads two classes (default is False)
+        
+    Returns
+    -------
+    trainData : numpy array
+        images used for training
+    trainTarget  : numpy array
+        targets of the train images
+    validationData : numpy array
+        images used for validation
+    validationTarget  : numpy array
+        targets of the validation images
+    """  
+    
     if quickLoadForTest:
-        print("Quick Loading only two classes (remove after debugging)")
+        print("Quick Loading only two classes (use only for debugging)")
         X, targets = loadData(n_classes=2)
     else:
         X, targets = loadData()
@@ -97,6 +176,22 @@ def loadSplitTrainValidation(n_classes=classes, quickLoadForTest=False):
 
 # Test  data set is 12'631 datapoints (24%)
 def loadTestData(n_classes=classes):
+    """Loads the test dataset with its labels
+       
+    The Data set is 12,631 datapoints (24% of all datapoints)
+    
+    Parameters
+    ----------
+    n_classes : int, optional
+        total number of classes (default is settings.classes)
+        
+    Returns
+    -------
+    testData : numpy array
+        datapoints representing the traffic sign images
+    testTarget  : numpy array
+        targets of the data
+    """  
     
     testData=[]
     testTarget=[]
@@ -122,13 +217,37 @@ def loadTestData(n_classes=classes):
     return testData, testTarget
 
 def findLatestMetaFile(name):
-    onlyfiles = [f for f in listdir("./savedModels") if isfile(join("./savedModels", f))]
+    """Finds the path of the latest .meta file
+       
+    The path of the meta file is of the form:
+    './savedModels/'+run_name+"/state_at_step"
+    
+    Parameters
+    ----------
+    name : str
+        name of the model
+        
+    Returns
+    -------
+    biggest_step : int
+        step that was reached last during traing, -1 if model not found
+    file_with_biggest_step  : str
+        path to the .meta file
+    """  
+
+    directory = "./savedModels/"+name
+    if not(os.path.isdir(directory)):
+        print("Meta file not found (directory not found)")
+        return -1, ""
+
+    onlyfiles = [f for f in listdir(directory) if isfile(join(directory, f))]
     biggest_step=-1
     file_with_biggest_step=""
     for file in onlyfiles:
         filename, file_extension = os.path.splitext(file)
-        if file_extension==".meta" and filename.startswith(name+"-"):
-            rest=filename[len(name)+1:]
+        beginning = "state_at_step-"
+        if file_extension==".meta" and filename.startswith(beginning):
+            rest=filename[len(beginning):]
             try:
                 int_value = int(rest)
                 if int_value > biggest_step:

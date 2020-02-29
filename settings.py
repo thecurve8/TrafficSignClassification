@@ -3,11 +3,16 @@
 Created on Mon Feb 24 15:59:41 2020
 
 @author: Alexander
+
+This script defines settings for the network
 """
 import os
 
+#Number of classes of traffic signs
 classes=43
+
 cur_path=os.getcwd()
+
 #dictionary to label all traffic signs class.
 classes_dict = { 1:'Speed limit (20km/h)',
             2:'Speed limit (30km/h)', 
