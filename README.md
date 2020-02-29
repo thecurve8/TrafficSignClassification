@@ -117,5 +117,6 @@ After training for 15 epochs with a learning rate of 0.001, the results are the 
 Accuracy : 0.9798
 Loss : 0.07972
 
-![Accuracy plot](plots/accuracy.png)
-![Loss plot](plots/loss.png)
+![accuracy plot](https://user-images.githubusercontent.com/18367214/75614004-27a87580-5b34-11ea-93b0-7809a101e075.PNG)
+![loss plot](https://user-images.githubusercontent.com/18367214/75614015-4575da80-5b34-11ea-86da-a76312404582.PNG)
+
