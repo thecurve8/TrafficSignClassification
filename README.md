@@ -111,3 +111,11 @@ Do you want to continue training this model? [y/n]:y
 Number of epochs to run: 3
 Learning rate: 0.0001
 ```
+
+## Example resuts
+After training for 15 epochs with a learning rate of 0.001, the results are the following:
+Accuracy : 0.9798
+Loss : 0.07972
+
+[Accuracy plot](plots/accuracy.png)
+[Loss plot](plots/loss.png)
