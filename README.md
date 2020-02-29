@@ -115,6 +115,12 @@ Number of epochs to run: 3
 Learning rate: 0.0001
 ```
 
+To start the gui:
+```bash
+python gui.py
+Do you want to use the defaul model trafficSignClassifier? [y/n]:y
+```
+
 ## Example resuts
 After training for 15 epochs with a learning rate of 0.001, the results are the following:
 
