@@ -114,8 +114,12 @@ Learning rate: 0.0001
 
 ## Example resuts
 After training for 15 epochs with a learning rate of 0.001, the results are the following:
+
 Accuracy : 0.9798
+
 Loss : 0.07972
+
+Here are the plots from Tensorboard, the blue line is the training data, the orange one is the validation data:
 
 ![accuracy plot](https://user-images.githubusercontent.com/18367214/75614004-27a87580-5b34-11ea-93b0-7809a101e075.PNG)
 ![loss plot](https://user-images.githubusercontent.com/18367214/75614015-4575da80-5b34-11ea-86da-a76312404582.PNG)
