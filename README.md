@@ -84,6 +84,9 @@ These functions are in the classifierTrafficSigns.py script
 There is a GUI that can be used to see how the model predicts images of road signs.
 You can either predict images from the Test dataset or load images from anywhere else.
 
+![gui screenshot](https://user-images.githubusercontent.com/18367214/75614048-b0bfac80-5b34-11ea-8b66-afd92457773b.PNG)
+
+
 ## Usage
  To train a new model:
 ```bash
