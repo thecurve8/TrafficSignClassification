@@ -22,7 +22,7 @@ The environment needs to have tensorflow, numpy, pickle, matplotlib, PIL, pandas
 
 ## The neural network
 The network is as follows:
-- **input layer**: RGB images of size 30x30
+- 1 **input layer**: RGB images of size 30x30
 - 2 **Convolutional layers** with 32 filters and kernel size (5,5) and activation ReLu
 - 1 **MaxPool layer** with pool_size (2,2)
 - 1 **Dropout layer** with keep_prob 0.75 (keep_prob is 1.0 when not used for training)
@@ -62,9 +62,9 @@ There are two ways to view the logs:
 
 ### Tensorboard
 1. run
-'''bash
+```bash
 tensorboard --logdir="./logs" --port 6006 
-'''
+```
 2. To see results go to http://localhost:6006/#scalars
 
 ### Numpy arrays in pickle file
