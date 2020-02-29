@@ -114,5 +114,5 @@ def dense(x, W, b, activation='none'):
     
     out = tf.add(tf.matmul(x, W), b)
     if activation=='relu':
-        out = tf.nn.relu(d)
+        out = tf.nn.relu(out)
     return out
